@@ -1,0 +1,144 @@
+import os
+
+INPUT_FOLDER = 'patients'
+OUTPUT_FOLDER = 'his'
+OUTPUT_FILENAME = 'hce.txt'
+
+REQUIRED_FIELDS = [
+    'Id',
+    'Nombre',
+    'Apellido',
+    'Edad',
+    'Género',
+    'Fecha de Nacimiento',
+    'EPS'
+]
+
+def setup_directories_and_sample_data():
+    """Crea las carpetas necesarias y archivos de ejemplo para la demostración."""
+    os.makedirs(INPUT_FOLDER, exist_ok=True)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+    sample_patients = [
+        {
+            'Id': '1',
+            'Nombre': 'Pepito',
+            'Apellido': 'Pérez',
+            'Edad': '36',
+            'Género': 'Masculino',
+            'Fecha de Nacimiento': '1988-01-01',
+            'EPS': 'Sura'
+        },
+        {
+            'Id': '2',
+            'Nombre': 'Juana',
+            'Apellido': 'De Arco',
+            'Edad': '16',
+            'Género': 'Femenino',
+            'Fecha de Nacimiento': '2008-05-15',
+            'EPS': 'Coomeva'
+        },
+        {
+            'Id': '3',
+            'Nombre': 'Nicolás',
+            'Apellido': 'Maduro',
+            'Edad': '57',
+            'Género': 'Masculino',
+            'Fecha de Nacimiento': '1966-11-23',
+            'EPS': 'Nueva EPS'
+        }
+    ]
+
+    print(f"Creando {len(sample_patients)} archivos de ejemplo en la carpeta '{INPUT_FOLDER}'...")
+    for i, patient_data in enumerate(sample_patients):
+        file_path = os.path.join(INPUT_FOLDER, f'patient_{patient_data["Id"]}.txt')
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for key, value in patient_data.items():
+                f.write(f"{key}: {value}\n")
+        print(f"  - Creado: {file_path}")
+    print("\nConfiguración de directorios y datos de ejemplo completada.")
+
+setup_directories_and_sample_data()
+
+def extract_patient_data_from_file(file_path):
+    """
+    Extrae la información de un archivo de paciente dado su ruta.
+    Asume que los campos están en formato 'Campo: Valor' en líneas separadas.
+    """
+    patient_info = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    patient_info[key.strip()] = value.strip()
+    except FileNotFoundError:
+        print(f"Advertencia: Archivo no encontrado: {file_path}")
+    except Exception as e:
+        print(f"Error al leer el archivo {file_path}: {e}")
+    return patient_info
+
+def process_patient_files():
+    """
+    Procesa todos los archivos de pacientes en la carpeta INPUT_FOLDER,
+    extrae la información y la guarda en OUTPUT_FILENAME en OUTPUT_FOLDER.
+    """
+    all_patients_data = []
+
+    if not os.path.exists(INPUT_FOLDER):
+        print(f"Error: La carpeta de entrada '{INPUT_FOLDER}' no existe. Por favor, asegúrese de crearla y colocar los archivos .txt de pacientes allí.")
+        return
+
+    print(f"\nProcesando archivos de la carpeta '{INPUT_FOLDER}'...")
+    for filename in os.listdir(INPUT_FOLDER):
+        if filename.endswith('.txt'):
+            file_path = os.path.join(INPUT_FOLDER, filename)
+            print(f"  - Leyendo: {file_path}")
+            patient_data = extract_patient_data_from_file(file_path)
+
+            extracted_values = []
+            is_complete = True
+            for field in REQUIRED_FIELDS:
+                if field in patient_data:
+                    extracted_values.append(patient_data[field])
+                else:
+                    extracted_values.append('')
+                    is_complete = False
+
+            if not is_complete:
+                print(f"    Advertencia: El archivo {filename} no contiene todos los campos requeridos. Se usarán valores vacíos para los campos faltantes.")
+            all_patients_data.append(extracted_values)
+
+    output_file_path = os.path.join(OUTPUT_FOLDER, OUTPUT_FILENAME)
+    try:
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            header = '|' + '|'.join(REQUIRED_FIELDS) + '|\n'
+
+            header = header.replace('Fecha de Nacimiento', 'FechaNacimiento')
+            f.write(header)
+
+            
+            for patient in all_patients_data:
+                f.write('|' + '|'.join(patient) + '|\n')
+        print(f"\nInformación de pacientes consolidada exitosamente en: {output_file_path}")
+    except Exception as e:
+        print(f"Error al escribir el archivo de salida {output_file_path}: {e}")
+
+
+process_patient_files()
+
+def view_hce_file():
+    hce_file_path = os.path.join(OUTPUT_FOLDER, OUTPUT_FILENAME)
+    print(f"\n--- Contenido de '{hce_file_path}' ---")
+    try:
+        with open(hce_file_path, 'r', encoding='utf-8') as f:
+            print(f.read())
+    except FileNotFoundError:
+        print(f"El archivo '{hce_file_path}' no existe.")
+    except Exception as e:
+        print(f"Error al leer el archivo '{hce_file_path}': {e}")
+    print("------------------------------------------")
+
+
+view_hce_file()

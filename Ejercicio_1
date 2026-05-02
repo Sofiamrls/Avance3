@@ -1,0 +1,59 @@
+def get_next_patient_id():
+    try:
+        with open('salida.txt', 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            return len(lines) + 1
+    except FileNotFoundError:
+        return 1
+
+def add_patient_info():
+    print("\n--- Ingresar Información de Paciente ---")
+    nombre = input("Ingrese el Nombre del paciente: ")
+    apellido = input("Ingrese el Apellido del paciente: ")
+    edad = input("Ingrese la Edad del paciente: ")
+
+    
+    patient_id = get_next_patient_id()
+    
+    patient_data = f"{patient_id}|{nombre}|{apellido}|{edad}|\n"
+
+    
+    with open('salida.txt', 'a', encoding='utf-8') as f:
+        f.write(patient_data)
+    print("Información del paciente guardada exitosamente.")
+
+
+def view_patient_info():
+    print("\n--- Información de Pacientes ---")
+    try:
+        
+        with open('salida.txt', 'r', encoding='utf-8') as f:
+            content = f.read()
+            if content:
+                print(content)
+            else:
+                print("El archivo 'salida.txt' está vacío.")
+    except FileNotFoundError:
+        print("El archivo 'salida.txt' no existe o aún no contiene información.")
+    print("--------------------------------")
+
+def main():
+    while True:
+        print("\n--- MENÚ ---")
+        print("1. Ingresar información de paciente")
+        print("2. Ver información en archivo")
+        print("3. Salir")
+        choice = input("Seleccione una opción: ")
+
+        if choice == '1':
+            add_patient_info()
+        elif choice == '2':
+            view_patient_info()
+        elif choice == '3':
+            print("Saliendo de la aplicación. ¡Hasta luego!")
+            break 
+        else:
+            print("Opción no válida. Por favor, intente de nuevo.")
+
+if __name__ == "__main__":
+    main()
